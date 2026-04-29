@@ -1,18 +1,21 @@
 'use strict';
-
+const dns = require('node:dns');
+dns.setDefaultResultOrder('verbatim'); // This tells Node to use the OS's default (IPv6 friendly)
 const axios          = require('axios');
 const { v7: uuidv7 } = require('uuid');
 const { init, pool } = require('./db');
 const { getNameByCode } = require('./countries');
+const fs = require('fs');
+require('dotenv').config();
 
-const SEED_URL = process.env.SEED_URL || process.argv[2];
+const SEED_URL = process.env.DATABASE_URL || process.argv[2];
 function utcNow() { return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'); }
 function classifyAge(a) { return a<=12?'child':a<=19?'teenager':a<=59?'adult':'senior'; }
 
 async function seed() {
-  if (!SEED_URL) { console.error('Usage: SEED_URL=<url> npm run seed'); process.exit(1); }
-  await init();
-  const { data } = await axios.get(SEED_URL);
+ await init();
+  const rawData = fs.readFileSync('./seed.json', 'utf8');
+  const data = JSON.parse(rawData);
   const profiles  = Array.isArray(data) ? data : data.profiles || data.data;
   console.log(`Seeding ${profiles.length} profiles...`);
   let ins = 0, skip = 0;

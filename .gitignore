@@ -1,2 +1,4 @@
 node_modules/
 .env
+seed.json
+seed.js

@@ -36,25 +36,18 @@ app.get('/', (_, res) => res.json({ status: 'success', message: 'Insighta Labs+ 
 app.use('/auth', authRouter);
 
 // /api/users/me — requires auth, no version header needed
-// /api/users/me — requires auth, no version header needed
 const { requireAuth, apiLimiter } = require('./middleware');
 app.get('/api/users/me', apiLimiter, requireAuth, (req, res) => {
-  // Destructure github_id and ensure all identity fields are captured from the user object
   const { id, github_id, username, email, avatar_url, role, is_active, created_at } = req.user;
-  
-  res.json({ 
-    status: 'success', 
-    data: { 
-      id, 
-      github_id, // Added to satisfy user identity requirements
-      username, 
-      email, 
-      avatar_url, 
-      role, 
-      is_active, 
-      created_at 
-    } 
-  });
+  res.json({ status: 'success', data: { id, github_id, username, email, avatar_url, role, is_active, created_at } });
+});
+
+app.use('/api/profiles', profilesRouter);
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ status: 'error', message: 'Internal server error' });
 });
 
 if (require.main === module) {
